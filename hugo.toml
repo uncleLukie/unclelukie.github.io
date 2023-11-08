@@ -1,0 +1,4 @@
+baseURL = 'https://unclelukie.com/'
+languageCode = 'en-au'
+title = 'Luke Hewitt'
+theme = 'ananke'
