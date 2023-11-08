@@ -1,7 +1,7 @@
 ---
-title: Portfolio Project 1
-seo_title: Portfolio Project 1
-summary: Portfolio Project 1 is my first portfolio project.
+title: OlympicPulse
+seo_title: OlympicPulse AR mobile App
+summary: OlympicPulse is an AR powered mobile App built in Unity
 description: Portfolio Project 1 is my first portfolio project.
 slug: portfolio-project-1
 author: John Doe

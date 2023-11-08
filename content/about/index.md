@@ -1,21 +1,18 @@
 ---
 type: about
 linktitle: About
-title: Hi, my name is Hugo.
+title: Hi, I'm Luke
 seo_title: About
-description: Learn more about my background and experience.
+description: Learn more about my background and experience in game development and project management.
 ---
-
-You can customize the about page heading and disable social links if desired. The rest of the content can be added with markdown. Please see [Github](https://github.com/wjh18/hugo-liftoff) for a full list of features and documentation.
-
 ## Who am I?
 
-Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Fusce sem augue, tristique luctus lobortis nec, cursus eu erat. Proin dictum vel enim a vestibulum.
+Hey there, I'm Luke Hewitt, the founder and lead developer at smashit.games based in Brisbane, Australia. My passion lies in creating innovative experiences in the XR gaming space, leveraging my expertise in game development and project management.
 
 ## My Experience
 
-Integer est purus, aliquam ac enim aliquet, viverra sodales mauris. Integer neque sapien, fermentum sit amet augue in, vulputate pellentesque turpis. Quisque eget blandit turpis, in semper lectus.
+I've been at the forefront of game development, web development and database management, steering projects from their conceptual stages all the way through to launch. My role involves more than just hands-on development; it encompasses strategic planning and executing our product roadmap to deliver immersive VR games that resonate with our audience. With a Bachelor of Information Technology from the University of Queensland and experience as a Systems Administrator at STCpl, I've honed my skills in software development, project management, and operational efficiency.
 
 ## Learn More
 
-You can also link to [other pages]({{< ref "contact" >}}) in your markdown.
+Want to see the projects I've worked on? Check out the [projects page]({{< ref "projects" >}}) to dive into the games and applications I've developed. If you wanna get in touch check out the [contact page]({{< ref "contact" >}})
