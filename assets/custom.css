@@ -1,1 +1,9 @@
 /* Add custom CSS */
+
+body {
+    text-transform: lowercase;
+}
+
+h1 {
+    text-transform: lowercase;
+}
