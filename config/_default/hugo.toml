@@ -2,7 +2,7 @@
 baseURL = 'https://unclelukie.com/' # Enter your full production URL
 languageCode = 'en-au' # Default
 timeZone = 'Australia/Brisbane' # IANA timezone https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-title = 'luke hewitt' # Site title used throughout site
+title = 'unclelukie.com' # Site title used throughout site
 
 ### SEO, Analytics & 3rd-party
 enableRobotsTXT = true # To overwrite the theme's robots.txt, add your own in the /layouts/ directory
