@@ -1,5 +1,5 @@
 ---
-title: "The Group Project Dilemma: Leading the Charge in Uni"
+title: "The Group Project Dilemma: Leading the Charge at Uni"
 seo_title: "Group Project Management in University"
 summary: "Navigating the tricky waters of group projects and how to handle slackers."
 description: "A look into project management within university group projects and strategies for dealing with less engaged students."
@@ -36,8 +36,8 @@ Alright, let's chat about the elephant in the room when it comes to uni life —
 haven't we? You're paired up with strangers, you're somewhat excited about the project, and you're ready to give it 
 your all. But there's a catch. Not everyone's on the same page.
 
-Anecdotally, I've had more 'bad' groups than good ones. I've tried making it super easy for them, setup the Discord,
-GitHub repo, make agreements with them early on on the pace of work, who will be responsible for what. You do your work,
+I've had more 'bad' groups than good ones. I've tried making it super easy for them, setup the Discord,
+GitHub repo, make agreements with them early on about the pace of work, who will be responsible for what. You do your work,
 what you've been assigned to do ahead of time, ya know... Like a responsible student. The worst is when you have dependencies
 that you rely on to be completed before you can finish yours.
 
