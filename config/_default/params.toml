@@ -30,8 +30,8 @@ images = ['images/default.png'] # Fallback for Open Graph and Twitter Cards imag
 ogLocale = "en_US" # Open graph locale
 
 # Twitter Cards
-twitterSite = "johndoestwitter" # Enter your twitter handle without the @
-twitterCreator = "johndoestwitter" # Enter your twitter handle without the @
+twitterSite = "unclelukie" # Enter your twitter handle without the @
+twitterCreator = "unclelukie" # Enter your twitter handle without the @
 
 # JSON-LD structured data schemas
 schemaName = "John Doe" # Enter your name
@@ -48,10 +48,11 @@ about_page_socials = true
 
 # Enable or disable individual social icons
 [social.links]
-  #twitter = "username"
+  twitter = "unclelukie"
+  youtube = "UCTQcn1OuSh84trrqvJseqfA"
   github = "unclelukie"
   #stack_overflow = "userid/username" # include user id
-  email = "lsjhewitt@gmail.com"
+  email = "lukehewitt@smashit.games"
   linkedin = "unclelukie" # Comment out to disable
   # mastodon_server = "example.social" # include subdomains if relevant, scheme not needed (defaults to https)
   # mastodon_user = "username" # don't include preceding @
