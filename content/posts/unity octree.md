@@ -6,7 +6,7 @@ description: "The why and how of creating an Octree in Unity"
 slug: unity-octree
 author: Luke Hewitt
 
-draft: true
+draft: false
 date: 2024-05-07T09:47:00+10:00
 lastmod: 2024-05-07T09:47:00+10:00
 expiryDate: 
