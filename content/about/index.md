@@ -7,12 +7,17 @@ description: Learn more about my background and experience in game development a
 ---
 ## Who am I?
 
-Hey there, I'm Luke Hewitt, the founder and lead developer at smashit.games based in Brisbane, Australia. My passion lies in creating innovative experiences in the XR gaming space, leveraging my expertise in game development and project management.
+Hey there, I'm Luke Hewitt and this is my personal site. I'm a code wrangler (yeeeehaw) from Brisbane, Australia. Here
+you'll find out stuff about the things I'm working on, tutorials, opinion pieces, or pretty much anything else I wanna 
+put on here :)
 
 ## My Experience
 
-I've been at the forefront of game development, web development and database management, steering projects from their conceptual stages all the way through to launch. My role involves more than just hands-on development; it encompasses strategic planning and executing our product roadmap to deliver immersive VR games that resonate with our audience. With a Bachelor of Information Technology from the University of Queensland and experience as a Systems Administrator at STCpl, I've honed my skills in software development, project management, and operational efficiency.
+I've been deeply involved in all kinds of software development from front end to back end, steering projects from their 
+conceptual stages all the way through to launch. My role in a team involves more than just hands-on development; I also
+bring strategic planning and coordinated execution the product roadmap.
 
 ## Learn More
 
-Want to see the projects I've worked on? Check out the [projects page]({{< ref "projects" >}}) to dive into the games and applications I've developed. If you wanna get in touch check out the [contact page]({{< ref "contact" >}})
+Want to see the projects I've worked on? Check out the [projects page]({{< ref "projects" >}}) to dive into the 
+things I've developed. If you wanna get in touch check out the [contact page]({{< ref "contact" >}})
