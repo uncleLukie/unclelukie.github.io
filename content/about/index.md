@@ -15,7 +15,7 @@ put on here :)
 
 I've been deeply involved in all kinds of software development from front end to back end, steering projects from their 
 conceptual stages all the way through to launch. My role in a team involves more than just hands-on development; I also
-bring strategic planning and coordinated execution the product roadmap.
+bring strategic planning and coordinated execution to the product roadmap.
 
 ## Learn More
 
