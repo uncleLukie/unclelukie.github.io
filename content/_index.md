@@ -1,6 +1,6 @@
 ---
 title: Hi, I'm Luke Hewitt.
-subtitle: I'm a video game developer and founder of [smashit.games](https://smashit.games). I live in Brisbane, Australia. p.s. the emperor is a bad dad.
+subtitle: I'm a code wrangler from Brisbane, Australia.
 seo_title: unclelukie.com
 
 primary_cta_page: "about"
