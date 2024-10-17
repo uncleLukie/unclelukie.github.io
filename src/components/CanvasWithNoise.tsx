@@ -17,9 +17,9 @@ const CanvasWithNoise: React.FC = () => {
         window.addEventListener('hashchange', hashchange);
         hashchange();
 
-        const canvas = canvasRef.current;
-        const audio = audioRef.current;
-        const volume = volumeRef.current;
+        const canvas = canvasRef.current!;
+        const audio = audioRef.current!;
+        const volume = volumeRef.current!;
 
         // Ensure canvas, audio, and volume elements are not null
         if (!canvas || !audio || !volume) return;
@@ -32,11 +32,11 @@ const CanvasWithNoise: React.FC = () => {
         // Main loop (rendering and updating)
         function mainloop() {
             function createRenderer() {
-                const canvasRect = canvas!.getBoundingClientRect(); // Use non-null assertion
-                canvas!.width = Math.max(canvasRect.width, window.innerWidth) | 0;
-                canvas!.height = Math.max(canvasRect.height, window.innerHeight) | 0;
+                const canvasRect = canvas.getBoundingClientRect();
+                canvas.width = Math.max(canvasRect.width, window.innerWidth) | 0;
+                canvas.height = Math.max(canvasRect.height, window.innerHeight) | 0;
 
-                return Renderer(ctx, canvas!.width, canvas!.height);
+                return Renderer(ctx, canvas.width, canvas.height);
             }
 
             let render = createRenderer();
