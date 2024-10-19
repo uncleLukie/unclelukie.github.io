@@ -11,6 +11,44 @@ const ThreeAudioTerrain: React.FC = () => {
     let audioContext: AudioContext | null = null;
     let terrain: THREE.Mesh | null = null;
     let terrainOffset = 0; // For forward movement
+    let paletteIndex = 0; // Track the current palette
+
+    // Define the new color palette based on the colors you provided
+    const palettes = [
+        { top: 0x0f0606, bottom: 0x200b0b },  // Dark Red to Slightly Darker Red
+        { top: 0x2f0000, bottom: 0x490000 },  // Red gradient
+        { top: 0x490000, bottom: 0x650000 }   // Deeper Red gradient
+    ];
+
+    const backgroundMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            topColor: { value: new THREE.Color(palettes[0].top) },
+            bottomColor: { value: new THREE.Color(palettes[0].bottom) },
+            offset: { value: 100 },
+            exponent: { value: 0.6 }
+        },
+        vertexShader: `
+            varying vec3 vWorldPosition;
+            void main() {
+                vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+                vWorldPosition = worldPosition.xyz;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+            }
+        `,
+        fragmentShader: `
+            uniform vec3 topColor;
+            uniform vec3 bottomColor;
+            varying vec3 vWorldPosition;
+            void main() {
+                float h = normalize( vWorldPosition ).y;
+                gl_FragColor = vec4( mix( bottomColor, topColor, max( h, 0.0 ) ), 1.0 );
+            }
+        `,
+        side: THREE.BackSide,
+        depthWrite: false
+    });
+
+    const skyBox = new THREE.Mesh(new THREE.SphereGeometry(500, 32, 15), backgroundMaterial);
 
     // Function to update the terrain based on bass frequencies
     const updateTerrain = (bassHeightFactor: number) => {
@@ -37,12 +75,14 @@ const ThreeAudioTerrain: React.FC = () => {
 
         // Set up Three.js scene, camera, and renderer
         const scene = new THREE.Scene();
-
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setClearColor(0x000000, 1);  // Ensure the canvas is cleared
         canvas.appendChild(renderer.domElement);
+
+        // Add skybox with gradient shader material
+        scene.add(skyBox);
 
         // Set up lighting
         const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
@@ -77,8 +117,27 @@ const ThreeAudioTerrain: React.FC = () => {
 
             terrainOffset += 0.1; // Move terrain forward
 
-            // Clear the previous frame before rendering
-            renderer.clear();
+            // Gradually change the color palette over time
+            const time = Date.now() * 0.0005;
+            const currentPalette = palettes[paletteIndex % palettes.length];
+            const nextPalette = palettes[(paletteIndex + 1) % palettes.length];
+
+            const lerpFactor = Math.sin(time) * 0.5 + 0.5;
+            backgroundMaterial.uniforms.topColor.value.lerpColors(
+                new THREE.Color(currentPalette.top),
+                new THREE.Color(nextPalette.top),
+                lerpFactor
+            );
+            backgroundMaterial.uniforms.bottomColor.value.lerpColors(
+                new THREE.Color(currentPalette.bottom),
+                new THREE.Color(nextPalette.bottom),
+                lerpFactor
+            );
+
+            // Update the current palette index if needed
+            if (lerpFactor >= 1.0) {
+                paletteIndex++;
+            }
 
             // Render the scene
             renderer.render(scene, camera);
