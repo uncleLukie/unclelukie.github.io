@@ -1,9 +1,9 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer';
-import {RenderPass} from 'three/examples/jsm/postprocessing/RenderPass';
-import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass';
-import {OutputPass} from 'three/examples/jsm/postprocessing/OutputPass';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
 
 const ThreeAudioTerrain: React.FC = () => {
     const canvasRef = useRef<HTMLDivElement | null>(null);
@@ -32,42 +32,46 @@ const ThreeAudioTerrain: React.FC = () => {
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ReinhardToneMapping;
+        renderer.toneMappingExposure = 1.5; // Ensure bright enough for bloom
         canvas.appendChild(renderer.domElement);
 
         const renderScene = new RenderPass(scene, camera);
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.5, 0.8, 0.5);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.09, 0.9, 0.4);
         const bloomComposer = new EffectComposer(renderer);
         bloomComposer.addPass(renderScene);
         bloomComposer.addPass(bloomPass);
         bloomComposer.addPass(new OutputPass());
         bloomComposerRef.current = bloomComposer;
 
-        // Shader Material for the 3D object
         const mat = new THREE.ShaderMaterial({
             uniforms: uniformsRef.current,
             vertexShader: `
                 uniform float u_time;
                 uniform float u_frequency;
-                varying vec3 vNormal;
 
                 vec3 mod289(vec3 x) {
                     return x - floor(x * (1.0 / 289.0)) * 289.0;
                 }
+
                 vec4 mod289(vec4 x) {
                     return x - floor(x * (1.0 / 289.0)) * 289.0;
                 }
+
                 vec4 permute(vec4 x) {
-                    return mod289(((x*34.0)+10.0)*x);
+                    return mod289(((x * 34.0) + 10.0) * x);
                 }
+
                 vec4 taylorInvSqrt(vec4 r) {
                     return 1.79284291400159 - 0.85373472095314 * r;
                 }
+
                 vec3 fade(vec3 t) {
-                    return t*t*t*(t*(t*6.0-15.0)+10.0);
+                    return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
                 }
 
                 float pnoise(vec3 P, vec3 rep) {
-                    vec3 Pi0 = mod(floor(P), rep); 
+                    vec3 Pi0 = mod(floor(P), rep);
                     vec3 Pi1 = mod(Pi0 + vec3(1.0), rep);
                     Pi0 = mod289(Pi0);
                     Pi1 = mod289(Pi1);
@@ -98,14 +102,14 @@ const ThreeAudioTerrain: React.FC = () => {
                     gx1 -= sz1 * (step(0.0, gx1) - 0.5);
                     gy1 -= sz1 * (step(0.0, gy1) - 0.5);
 
-                    vec3 g000 = vec3(gx0.x,gy0.x,gz0.x);
-                    vec3 g100 = vec3(gx0.y,gy0.y,gz0.y);
-                    vec3 g010 = vec3(gx0.z,gy0.z,gz0.z);
-                    vec3 g110 = vec3(gx0.w,gy0.w,gz0.w);
-                    vec3 g001 = vec3(gx1.x,gy1.x,gz1.x);
-                    vec3 g101 = vec3(gx1.y,gy1.y,gz1.y);
-                    vec3 g011 = vec3(gx1.z,gy1.z,gz1.z);
-                    vec3 g111 = vec3(gx1.w,gy1.w,gz1.w);
+                    vec3 g000 = vec3(gx0.x, gy0.x, gz0.x);
+                    vec3 g100 = vec3(gx0.y, gy0.y, gz0.y);
+                    vec3 g010 = vec3(gx0.z, gy0.z, gz0.z);
+                    vec3 g110 = vec3(gx0.w, gy0.w, gz0.w);
+                    vec3 g001 = vec3(gx1.x, gy1.x, gz1.x);
+                    vec3 g101 = vec3(gx1.y, gy1.y, gz1.y);
+                    vec3 g011 = vec3(gx1.z, gy1.z, gz1.z);
+                    vec3 g111 = vec3(gx1.w, gy1.w, gz1.w);
 
                     vec4 norm0 = taylorInvSqrt(vec4(dot(g000, g000), dot(g010, g010), dot(g100, g100), dot(g110, g110)));
                     g000 *= norm0.x;
@@ -130,13 +134,13 @@ const ThreeAudioTerrain: React.FC = () => {
                     vec3 fade_xyz = fade(Pf0);
                     vec4 n_z = mix(vec4(n000, n100, n010, n110), vec4(n001, n101, n011, n111), fade_xyz.z);
                     vec2 n_yz = mix(n_z.xy, n_z.zw, fade_xyz.y);
-                    float n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x); 
+                    float n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x);
                     return 2.2 * n_xyz;
                 }
 
                 void main() {
                     float noise = 3.0 * pnoise(position + u_time, vec3(10.0));
-                    float displacement = (u_frequency / 30.0) * (noise / 10.0); 
+                    float displacement = (u_frequency / 30.0) * (noise / 10.0);
                     vec3 newPosition = position + normal * displacement;
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
                 }
@@ -147,28 +151,26 @@ const ThreeAudioTerrain: React.FC = () => {
                 uniform float u_blue;
                 varying vec3 vNormal;
                 void main() {
-                    gl_FragColor = vec4(u_red, u_green, u_blue, 1.0); // Fixed red color
+                    // Increase brightness to trigger bloom
+                    vec3 glowColor = vec3(u_red, u_green, u_blue) * 5.0; 
+                    gl_FragColor = vec4(glowColor, 1.0);
                 }
             `,
             wireframe: true,
         });
 
-        // Geometry for the 3D object
         const geo = new THREE.IcosahedronGeometry(4, 30);
         const mesh = new THREE.Mesh(geo, mat);
         scene.add(mesh);
 
-        // Position camera outside the object
         camera.position.set(0, 0, 15);
         camera.lookAt(0, 0, 0);
 
-        // Animation loop
         const clock = new THREE.Clock();
         const animate = () => {
             const delta = clock.getDelta();
             uniformsRef.current.u_time.value = clock.getElapsedTime();
 
-            // Update frequency for visual effects based on analyser
             if (analyserRef.current) {
                 const dataArray = analyserRef.current.getFrequencyData();
                 uniformsRef.current.u_frequency.value = dataArray.reduce((a: number, b: number) => a + b, 0) / dataArray.length;
@@ -179,7 +181,6 @@ const ThreeAudioTerrain: React.FC = () => {
         };
         animate();
 
-        // Handle window resize
         const onWindowResize = () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -210,8 +211,7 @@ const ThreeAudioTerrain: React.FC = () => {
                 sound.play();
                 setIsPlaying(true);
 
-                // Setup analyser
-                analyserRef.current = new THREE.AudioAnalyser(sound, 256);  // Set up the analyser to read frequency data
+                analyserRef.current = new THREE.AudioAnalyser(sound, 256);
             });
         } else if (isPlaying) {
             soundRef.current?.pause();
