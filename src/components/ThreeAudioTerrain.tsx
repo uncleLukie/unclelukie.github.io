@@ -105,7 +105,7 @@ const ThreeAudioTerrain: React.FC = () => {
 
         const terrainMaterial = new THREE.MeshBasicMaterial({
             wireframe: true,
-            color: 0x6a0dad, // Purple color for synthwave
+            color: 0xE0115F,
         });
 
         terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
