@@ -1,111 +1,129 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import * as THREE from 'three';
+import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer';
+import {RenderPass} from 'three/examples/jsm/postprocessing/RenderPass';
+import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass';
+import {OutputPass} from 'three/examples/jsm/postprocessing/OutputPass';
+import {GUI} from 'dat.gui';
 
 const ThreeAudioTerrain: React.FC = () => {
     const canvasRef = useRef<HTMLDivElement | null>(null);
-    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const bloomComposerRef = useRef<EffectComposer | null>(null);
+    const analyserRef = useRef<THREE.AudioAnalyser | null>(null);
+    const soundRef = useRef<THREE.Audio | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [volume, setVolume] = useState(1);
 
     let audioContext: AudioContext | null = null;
-    let terrain: THREE.Mesh | null = null;
-    let terrainOffset = 0;
 
-    // Create the material with lighting and shading effects
-    const createPhongMaterial = () => {
-        return new THREE.MeshPhongMaterial({
-            color: 0xFF0000,
-            flatShading: true,
-            shininess: 15,
-            specular: 0xaaaaaa,
-        });
-    };
+    const params = useMemo(() => ({
+        red: 1.0,
+        green: 1.0,
+        blue: 1.0,
+        threshold: 0.5,
+        strength: 0.5,
+        radius: 0.8,
+    }), []);
 
-    // Function to smooth the terrain movement
-    const smoothValue = (value: number, smoothFactor: number) => {
-        return value * (1 - smoothFactor) + smoothFactor * 0.5;
-    };
-
-    // Function to update the terrain based on audio data
-    const updateTerrain = (bassHeightFactor: number, midFreqFactor: number) => {
-        if (!terrain) return;
-
-        const positions = terrain.geometry.attributes.position.array as Float32Array;
-        const time = Date.now() * 0.001;
-
-        for (let i = 0; i < positions.length; i += 3) {
-            const x = positions[i];
-            const z = positions[i + 2] + terrainOffset;
-
-            // Smooth out the noise and bass factors
-            const noiseFactor = Math.sin(time + x * 0.1 + z * 0.1) * 1.5; // More subtle noise
-
-            // Smooth bass response and mid-frequency variation
-            const smoothBassFactor = smoothValue(bassHeightFactor, 0.3);
-            const smoothMidFactor = smoothValue(midFreqFactor, 0.2);
-
-            // Update the Y position based on smoother bass and reduced noise
-            positions[i + 1] = Math.sin(x * 0.15 + z * 0.15) * smoothBassFactor * 2 + noiseFactor;
-
-            // Slight variation in X direction using mid-frequencies
-            positions[i] += Math.cos(time + z * 0.1) * smoothMidFactor * 0.5;
-        }
-
-        terrain.geometry.attributes.position.needsUpdate = true;
-    };
+    const uniformsRef = useRef({
+        u_time: { value: 0.0 },
+        u_frequency: { value: 0.0 },
+        u_red: { value: 1.0 },
+        u_green: { value: 1.0 },
+        u_blue: { value: 1.0 },
+    });
 
     useEffect(() => {
         const canvas = canvasRef.current;
-        const audio = audioRef.current;
-        if (!canvas || !audio) return;
+        if (!canvas) return;
 
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setClearColor(0x000000, 1);
-        renderer.shadowMap.enabled = true;
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
         canvas.appendChild(renderer.domElement);
 
-        // Lighting
-        const ambientLight = new THREE.AmbientLight(0x750000, 0.4);  // Soft ambient light
-        scene.add(ambientLight);
+        const renderScene = new RenderPass(scene, camera);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), params.strength, params.radius, params.threshold);
+        const bloomComposer = new EffectComposer(renderer);
+        bloomComposer.addPass(renderScene);
+        bloomComposer.addPass(bloomPass);
+        bloomComposer.addPass(new OutputPass());
+        bloomComposerRef.current = bloomComposer;
 
-        const directionalLight = new THREE.DirectionalLight(0x750000, 20);
-        directionalLight.position.set(0, 500, 100);
-        directionalLight.castShadow = true; // Enable shadows
-        scene.add(directionalLight);
+        // Shader Material for the 3D object
+        const mat = new THREE.ShaderMaterial({
+            uniforms: uniformsRef.current,
+            vertexShader: `
+                uniform float u_time;
+                uniform float u_frequency;
+                varying vec3 vNormal;
+                void main() {
+                    float frequencyEffect = u_frequency / 256.0;
+                    vec3 newPosition = position + normal * frequencyEffect;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+                    vNormal = normal;
+                }
+            `,
+            fragmentShader: `
+                uniform float u_red;
+                uniform float u_green;
+                uniform float u_blue;
+                varying vec3 vNormal;
+                void main() {
+                    gl_FragColor = vec4(u_red, u_green, u_blue, 1.0);
+                }
+            `,
+            wireframe: true,
+        });
 
-        // Camera settings
-        camera.position.z = 150;
-        camera.position.y = 100;
+        // Geometry for the 3D object
+        const geo = new THREE.IcosahedronGeometry(4, 30);
+        const mesh = new THREE.Mesh(geo, mat);
+        scene.add(mesh);
+
+        // Position camera outside the object
+        camera.position.set(0, 0, 15);
         camera.lookAt(0, 0, 0);
 
-        // Create terrain geometry
-        const gridSize = 64;
-        const terrainWidth = 100;
-        const terrainDepth = 200;
-        const terrainGeometry = new THREE.PlaneGeometry(terrainWidth, terrainDepth, gridSize, gridSize);
-        terrainGeometry.rotateX(-Math.PI / 2); // Flatten it horizontally
+        // GUI controls for colors and bloom effect
+        const gui = new GUI();
+        const colorsFolder = gui.addFolder('Colors');
+        colorsFolder.add(params, 'red', 0, 1).onChange((value) => uniformsRef.current.u_red.value = Number(value));
+        colorsFolder.add(params, 'green', 0, 1).onChange((value) => uniformsRef.current.u_green.value = Number(value));
+        colorsFolder.add(params, 'blue', 0, 1).onChange((value) => uniformsRef.current.u_blue.value = Number(value));
 
-        // Create the material and mesh
-        const terrainMaterial = createPhongMaterial();
-        terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
-        terrain.receiveShadow = true;  // Allow the terrain to receive shadows
-        scene.add(terrain);
+        const bloomFolder = gui.addFolder('Bloom');
+        bloomFolder.add(params, 'threshold', 0, 1).onChange((value) => bloomPass.threshold = Number(value));
+        bloomFolder.add(params, 'strength', 0, 3).onChange((value) => bloomPass.strength = Number(value));
+        bloomFolder.add(params, 'radius', 0, 1).onChange((value) => bloomPass.radius = Number(value));
 
         // Animation loop
+        const clock = new THREE.Clock();
         const animate = () => {
+            const delta = clock.getDelta();
+            uniformsRef.current.u_time.value = clock.getElapsedTime();
+
+            // Update frequency for visual effects based on analyser
+            if (analyserRef.current) {
+                const dataArray = analyserRef.current.getFrequencyData();  // Retrieve the frequency data directly from the analyser
+
+                // Calculate the average frequency from the analyser data
+                uniformsRef.current.u_frequency.value = dataArray.reduce((a: number, b: number) => a + b, 0) / dataArray.length;  // Pass the average frequency to the shader
+            }
+
+            bloomComposer.render(delta);
             requestAnimationFrame(animate);
-            terrainOffset += 0.05;  // Reduce forward movement speed for smoother effect
-            renderer.render(scene, camera);
         };
         animate();
 
+        // Handle window resize
         const onWindowResize = () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            bloomComposer.setSize(window.innerWidth, window.innerHeight);
         };
         window.addEventListener('resize', onWindowResize);
 
@@ -113,69 +131,47 @@ const ThreeAudioTerrain: React.FC = () => {
             window.removeEventListener('resize', onWindowResize);
             renderer.dispose();
         };
-    }, []);
+    }, [params]);
 
     const handlePlayPause = () => {
-        const audio = audioRef.current;
-        if (!audio) return;
-
         if (!audioContext) {
             const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
             audioContext = new AudioCtx();
 
-            const analyser = audioContext.createAnalyser();
-            analyser.fftSize = 256;
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
+            const listener = new THREE.AudioListener();
+            const sound = new THREE.Audio(listener);
+            soundRef.current = sound;
 
-            const source = audioContext.createMediaElementSource(audio);
-            source.connect(analyser);
-            analyser.connect(audioContext.destination);
-
-            audioContext.resume().then(() => {
-                audio.play();
+            const audioLoader = new THREE.AudioLoader();
+            audioLoader.load('/monument.mp3', function (buffer) {
+                sound.setBuffer(buffer);
+                sound.setLoop(true);
+                sound.play();
                 setIsPlaying(true);
 
-                const updateAudioAndTerrain = () => {
-                    analyser.getByteFrequencyData(dataArray);
-
-                    const bassFrequencies = dataArray.slice(0, 10);
-                    const bassValue = bassFrequencies.reduce((a, b) => a + b) / bassFrequencies.length;
-                    const bassHeightFactor = (bassValue / 256) * 15;  // Reduce bass exaggeration
-
-                    const midFrequencies = dataArray.slice(10, 20);
-                    const midFreqValue = midFrequencies.reduce((a, b) => a + b) / midFrequencies.length;
-                    const midFreqFactor = (midFreqValue / 256) * 3;  // Subtle mid-frequency impact
-
-                    updateTerrain(bassHeightFactor, midFreqFactor);
-                    requestAnimationFrame(updateAudioAndTerrain);
-                };
-
-                updateAudioAndTerrain();
-            }).catch(console.error);
+                // Setup analyser
+                analyserRef.current = new THREE.AudioAnalyser(sound, 256);  // Set up the analyser to read frequency data
+            });
         } else if (isPlaying) {
-            audio.pause();
+            soundRef.current?.pause();
             setIsPlaying(false);
         } else {
-            audioContext.resume().then(() => {
-                audio.play();
-                setIsPlaying(true);
-            }).catch(console.error);
+            soundRef.current?.play();
+            setIsPlaying(true);
         }
     };
 
     const handleVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newVolume = Number(event.target.value);
         setVolume(newVolume);
-        if (audioRef.current) {
-            audioRef.current.volume = newVolume;
+        if (soundRef.current) {
+            soundRef.current.setVolume(newVolume);
         }
     };
 
     return (
         <>
             <div ref={canvasRef} style={{ width: '100vw', height: '100vh' }} />
-            <audio ref={audioRef} id="music" src="/monument.opus" />
             <div style={{ position: 'absolute', top: 20, left: 20 }}>
                 <button onClick={handlePlayPause}>{isPlaying ? 'Pause' : 'Play'}</button>
                 <input
