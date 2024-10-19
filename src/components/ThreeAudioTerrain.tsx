@@ -1,4 +1,3 @@
-// src/components/ThreeAudioTerrain.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
@@ -11,57 +10,61 @@ const ThreeAudioTerrain: React.FC = () => {
     let audioContext: AudioContext | null = null;
     let terrain: THREE.Mesh | null = null;
     let terrainOffset = 0; // For forward movement
-    let paletteIndex = 0; // Track the current palette
 
-    // Define the new color palette based on the colors you provided
-    const palettes = [
-        { top: 0x0f0606, bottom: 0x200b0b },  // Dark Red to Slightly Darker Red
-        { top: 0x2f0000, bottom: 0x490000 },  // Red gradient
-        { top: 0x490000, bottom: 0x650000 }   // Deeper Red gradient
+    // Define the color palette provided
+    const colorPalette = [
+        0x641220, 0x6e1423, 0x85182a, 0xa11d33, 0xa71e34, 0xb21e35, 0xbd1f36, 0xc71f37, 0xda1e37, 0xe01e37
     ];
 
-    const backgroundMaterial = new THREE.ShaderMaterial({
-        uniforms: {
-            topColor: { value: new THREE.Color(palettes[0].top) },
-            bottomColor: { value: new THREE.Color(palettes[0].bottom) },
-            offset: { value: 100 },
-            exponent: { value: 0.6 }
-        },
-        vertexShader: `
-            varying vec3 vWorldPosition;
-            void main() {
-                vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
-                vWorldPosition = worldPosition.xyz;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-            }
-        `,
-        fragmentShader: `
-            uniform vec3 topColor;
-            uniform vec3 bottomColor;
-            varying vec3 vWorldPosition;
-            void main() {
-                float h = normalize( vWorldPosition ).y;
-                gl_FragColor = vec4( mix( bottomColor, topColor, max( h, 0.0 ) ), 1.0 );
-            }
-        `,
-        side: THREE.BackSide,
-        depthWrite: false
-    });
+    // Function to create a gradient material for the terrain
+    const createGradientMaterial = () => {
+        return new THREE.ShaderMaterial({
+            uniforms: {
+                colorArray: { value: colorPalette.map((color) => new THREE.Color(color)) },
+                time: { value: 0.0 },
+                totalDistance: { value: 1.0 }
+            },
+            vertexShader: `
+                varying vec3 vPosition;
+                void main() {
+                    vPosition = position;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform vec3 colorArray[10];
+                uniform float time;
+                uniform float totalDistance;
+                varying vec3 vPosition;
+                void main() {
+                    float positionRatio = (vPosition.z + totalDistance / 2.0) / totalDistance;
+                    int index = int(floor(positionRatio * 9.0));
+                    float blendFactor = mod(positionRatio * 9.0, 1.0);
+                    vec3 color = mix(colorArray[index], colorArray[index + 1], blendFactor);
+                    gl_FragColor = vec4(color, 1.0);
+                }
+            `,
+            side: THREE.DoubleSide,
+            wireframe: false,
+        });
+    };
 
-    const skyBox = new THREE.Mesh(new THREE.SphereGeometry(500, 32, 15), backgroundMaterial);
-
-    // Function to update the terrain based on bass frequencies
+    // Function to update the terrain based on bass frequencies and time-based noise
     const updateTerrain = (bassHeightFactor: number) => {
         if (!terrain) return;
 
         const positions = terrain.geometry.attributes.position.array as Float32Array;
+        const time = Date.now() * 0.001; // Time-based modifier for terrain movement
 
         for (let i = 0; i < positions.length; i += 3) {
             const x = positions[i];
             const z = positions[i + 2] + terrainOffset; // Offset for forward motion
 
-            // Amplify the wave height and modify the height (Y position) based on bass value
-            positions[i + 1] = Math.sin(x * 0.15 + z * 0.15) * bassHeightFactor * 3; // Amplified response
+            // Add a time-based sine wave and noise for "morphing" effect
+            const noiseFactor = Math.sin(time + x * 0.1 + z * 0.1) * 5; // Dynamic morphing effect
+
+            // Modify the height (Y position) based on the combination of bass and noise factor
+            positions[i + 1] = Math.sin(x * 0.15 + z * 0.15) * bassHeightFactor * 3 + noiseFactor;
         }
 
         // Mark vertices as needing an update
@@ -80,9 +83,6 @@ const ThreeAudioTerrain: React.FC = () => {
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setClearColor(0x000000, 1);  // Ensure the canvas is cleared
         canvas.appendChild(renderer.domElement);
-
-        // Add skybox with gradient shader material
-        scene.add(skyBox);
 
         // Set up lighting
         const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
@@ -103,10 +103,8 @@ const ThreeAudioTerrain: React.FC = () => {
         // Rotate the terrain so it lies flat
         terrainGeometry.rotateX(-Math.PI / 2);
 
-        const terrainMaterial = new THREE.MeshBasicMaterial({
-            wireframe: true,
-            color: 0xE0115F,
-        });
+        const terrainMaterial = createGradientMaterial();
+        terrainMaterial.uniforms.totalDistance.value = terrainDepth; // Set total distance for gradient calculation
 
         terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
         scene.add(terrain);
@@ -117,27 +115,8 @@ const ThreeAudioTerrain: React.FC = () => {
 
             terrainOffset += 0.1; // Move terrain forward
 
-            // Gradually change the color palette over time
-            const time = Date.now() * 0.0005;
-            const currentPalette = palettes[paletteIndex % palettes.length];
-            const nextPalette = palettes[(paletteIndex + 1) % palettes.length];
-
-            const lerpFactor = Math.sin(time) * 0.5 + 0.5;
-            backgroundMaterial.uniforms.topColor.value.lerpColors(
-                new THREE.Color(currentPalette.top),
-                new THREE.Color(nextPalette.top),
-                lerpFactor
-            );
-            backgroundMaterial.uniforms.bottomColor.value.lerpColors(
-                new THREE.Color(currentPalette.bottom),
-                new THREE.Color(nextPalette.bottom),
-                lerpFactor
-            );
-
-            // Update the current palette index if needed
-            if (lerpFactor >= 1.0) {
-                paletteIndex++;
-            }
+            // Slowly advance the color effect over time
+            terrainMaterial.uniforms.time.value += 0.005; // Adjust this for smoother or faster transitions
 
             // Render the scene
             renderer.render(scene, camera);
