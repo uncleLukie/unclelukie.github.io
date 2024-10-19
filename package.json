@@ -10,17 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@babylonjs/core": "^7.30.0",
-    "@babylonjs/gui": "^7.30.0",
-    "@babylonjs/inspector": "^7.30.0",
-    "@babylonjs/loaders": "^7.30.0",
-    "@babylonjs/materials": "^7.30.0",
-    "alea": "^1.0.1",
-    "babylonjs": "^7.30.0",
-    "gl-matrix": "^3.4.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "simplex-noise": "^4.0.3",
     "three": "^0.169.0"
   },
   "devDependencies": {
