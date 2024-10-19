@@ -10,16 +10,24 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@babylonjs/core": "^7.30.0",
+    "@babylonjs/gui": "^7.30.0",
+    "@babylonjs/inspector": "^7.30.0",
+    "@babylonjs/loaders": "^7.30.0",
+    "@babylonjs/materials": "^7.30.0",
     "alea": "^1.0.1",
+    "babylonjs": "^7.30.0",
     "gl-matrix": "^3.4.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "simplex-noise": "^4.0.3"
+    "simplex-noise": "^4.0.3",
+    "three": "^0.169.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",
     "@types/react": "^18.3.10",
     "@types/react-dom": "^18.3.0",
+    "@types/three": "^0.169.0",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "eslint": "^9.11.1",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
