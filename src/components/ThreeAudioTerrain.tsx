@@ -38,13 +38,10 @@ const ThreeAudioTerrain: React.FC = () => {
         // Set up Three.js scene, camera, and renderer
         const scene = new THREE.Scene();
 
-        // Add gradient background (adjust path to your gradient image)
-        const gradientTexture = new THREE.TextureLoader().load('/path/to/gradient.png');
-        scene.background = gradientTexture;
-
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 1);  // Ensure the canvas is cleared
         canvas.appendChild(renderer.domElement);
 
         // Set up lighting
@@ -80,7 +77,10 @@ const ThreeAudioTerrain: React.FC = () => {
 
             terrainOffset += 0.1; // Move terrain forward
 
-            // We will update the terrain based on the audio frequencies in handlePlayPause
+            // Clear the previous frame before rendering
+            renderer.clear();
+
+            // Render the scene
             renderer.render(scene, camera);
         };
         animate();
@@ -129,9 +129,6 @@ const ThreeAudioTerrain: React.FC = () => {
                         const bassFrequencies = dataArray.slice(0, 10);
                         const bassValue = bassFrequencies.reduce((a, b) => a + b) / bassFrequencies.length;
                         const bassHeightFactor = (bassValue / 256) * 20; // Scale to exaggerate the bass effect
-
-                        // Log for debugging
-                        console.log("BassValue:", bassValue, "Factor:", bassHeightFactor);
 
                         // Update the terrain based on the bass height factor
                         updateTerrain(bassHeightFactor);
