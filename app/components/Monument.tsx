@@ -1,9 +1,11 @@
 // app/components/Monument.tsx
 "use client";
-import React, { useRef, useState, useMemo } from 'react';
+// fix: import useEffect from react
+import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { TorusKnot } from '@react-three/drei';
+import { MathUtils } from 'three'; // math utils already imported, good
 
 interface MonumentProps {
     onClickAction: () => void;
@@ -28,93 +30,138 @@ const inactiveMaterialProps = {
     metalness: 0.5,
 };
 
+type TorusKnotArgs = [
+    radius?: number,
+    tube?: number,
+    tubularSegments?: number,
+    radialSegments?: number,
+    p?: number,
+    q?: number
+];
+
+
 export default function Monument({ onClickAction, isPlaying, isReady, audioData }: MonumentProps) {
     const meshRef = useRef<THREE.Mesh>(null!);
     const materialRef = useRef<THREE.MeshStandardMaterial>(null!);
+    const originalPositions = useRef<Float32Array | null>(null);
     const [hovered, setHovered] = useState(false);
 
-    // FIX: Increase the radius (first argument) to make the monument bigger
-    // FIX: Remove 'as const' to fix TS4104
-    const geometryArgs = useMemo(() => [1.5, 0.3, 160, 20], []); // Increased radius, tube, segments
+    const geometryArgs = useMemo((): TorusKnotArgs => [1.6, 0.35, 180, 24], []);
 
-    useFrame((_state, delta) => {
+    // runs once to store original vertex positions
+    useEffect(() => {
+        if (meshRef.current && meshRef.current.geometry?.attributes?.position && !originalPositions.current) {
+            // added check for geometry and attributes existing before cloning
+            originalPositions.current = meshRef.current.geometry.attributes.position.clone().array as Float32Array;
+            console.log("stored original vertex positions");
+        }
+        // adding meshRef.current?.geometry as dependency ensures it runs if geometry gets swapped (unlikely here)
+    }, [meshRef.current?.geometry]);
+
+
+    useFrame((state, delta) => {
         if (!meshRef.current || !materialRef.current) return;
 
+        const time = state.clock.getElapsedTime();
+
+        // rotation
         meshRef.current.rotation.y += delta * 0.05;
         meshRef.current.rotation.x += delta * 0.03;
         meshRef.current.rotation.z -= delta * 0.02;
 
+        // setup defaults
         let targetScaleValue = hovered ? 1.15 : 1.0;
         let targetEmissiveIntensity = inactiveMaterialProps.emissiveIntensity;
-        // FIX: Remove unused targetColor variable
-        // let targetColor = inactiveMaterialProps.color;
         let targetEmissive = inactiveMaterialProps.emissive;
+        // fix: remove redundant initializer, was already fixed but double checking
+        let currentTargetColor: string; // declare without initializing
 
-        // No need to set targetColor here as we lerp directly later
-        // if (hovered) {
-        //     targetColor = activeMaterialProps.color;
-        // }
-
-        let currentTargetColor = inactiveMaterialProps.color; // Determine target color based on hover/playing
+        let displacement = 0;
 
         if (isPlaying && audioData.length > 0) {
             const bass = (audioData[1] || 0) / 255;
             const mids = (audioData[Math.floor(audioData.length / 4)] || 0) / 255;
             const highs = (audioData[Math.floor(audioData.length / 2)] || 0) / 255;
+            const overallAvg = audioData.reduce((s, v) => s + v, 0) / (audioData.length * 255);
 
-            targetScaleValue += bass * 0.35;
-            targetEmissiveIntensity = 0.2 + mids * 1.5 + highs * 0.5;
+            targetScaleValue += bass * 0.45;
+            targetEmissiveIntensity = 0.2 + mids * 1.8 + highs * 0.6;
             targetEmissive = activeMaterialProps.emissive;
+
             if (hovered) {
                 targetEmissiveIntensity *= 1.2;
-                currentTargetColor = activeMaterialProps.color; // Hover color takes precedence when playing
+                currentTargetColor = activeMaterialProps.color;
             } else {
-                currentTargetColor = "#D896FF"; // Lighter purple when playing & not hovered
+                currentTargetColor = "#D896FF";
             }
+            displacement = overallAvg * 0.15 * (1 + Math.sin(time * 5 + bass * 10));
         } else {
-            // Set target color based only on hover when not playing
             currentTargetColor = hovered ? activeMaterialProps.color : inactiveMaterialProps.color;
         }
 
-        // Lerp scale smoothly
-        meshRef.current.scale.lerp(new THREE.Vector3(targetScaleValue, targetScaleValue, targetScaleValue), 0.08);
+        // --- vertex displacement ---
+        if (originalPositions.current && meshRef.current.geometry?.attributes?.position) {
+            // check attributes exist again just to be safe
+            const positions = meshRef.current.geometry.attributes.position.array as Float32Array;
+            const normals = meshRef.current.geometry.attributes.normal?.array as Float32Array | undefined;
 
-        // Lerp material properties
+            if (normals) { // only displace if we have normals
+                for (let i = 0; i < positions.length; i += 3) {
+                    const origX = originalPositions.current[i];
+                    const origY = originalPositions.current[i + 1];
+                    const origZ = originalPositions.current[i + 2];
+
+                    const normX = normals[i];
+                    const normY = normals[i + 1];
+                    const normZ = normals[i + 2];
+
+                    positions[i] = origX + normX * displacement;
+                    positions[i + 1] = origY + normY * displacement;
+                    positions[i + 2] = origZ + normZ * displacement;
+                }
+                meshRef.current.geometry.attributes.position.needsUpdate = true;
+                // maybe only compute normals less often? could save perf
+                if (displacement > 0.02 && Math.random() < 0.1) { // e.g. randomly, 10% of frames when displacing
+                    meshRef.current.geometry.computeVertexNormals();
+                }
+            }
+        }
+        // --- end vertex displacement ---
+
+
+        // lerp values
+        meshRef.current.scale.lerp(new THREE.Vector3(targetScaleValue, targetScaleValue, targetScaleValue), 0.08);
         materialRef.current.color.lerp(new THREE.Color(currentTargetColor), 0.1);
-        materialRef.current.emissiveIntensity = THREE.MathUtils.lerp(materialRef.current.emissiveIntensity, targetEmissiveIntensity, 0.1);
+        materialRef.current.emissiveIntensity = MathUtils.lerp(materialRef.current.emissiveIntensity, targetEmissiveIntensity, 0.1);
         materialRef.current.emissive.lerp(new THREE.Color(targetEmissive), 0.1);
 
     });
 
+    // --- event handlers (no changes) ---
     const handlePointerOver = (event: ThreeEvent<PointerEvent>) => {
         event.stopPropagation();
         setHovered(true);
         document.body.style.cursor = 'pointer';
     };
-
     const handlePointerOut = () => {
         setHovered(false);
         document.body.style.cursor = 'default';
     };
-
     const handleClick = (event: ThreeEvent<MouseEvent>) => {
         event.stopPropagation();
-        if (isReady) {
-            onClickAction();
-        } else {
-            console.log("Monument clicked, but audio not ready.");
-        }
+        if (isReady) onClickAction();
+        else console.log("monument clicked, audio not ready.");
     };
 
     return (
         <TorusKnot
             ref={meshRef}
-            args={geometryArgs} // Use updated args
+            args={geometryArgs}
             onClick={handleClick}
             onPointerOver={handlePointerOver}
             onPointerOut={handlePointerOut}
-            position={[0, 0.2, 0]} // Centered horizontally, slightly raised
-            castShadow // Keep castShadow
+            position={[0, 0.2, 0]}
+            castShadow={true}
         >
             <meshStandardMaterial
                 ref={materialRef}
