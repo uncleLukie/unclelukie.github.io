@@ -1,14 +1,52 @@
 /* app/globals.css */
 @import "tailwindcss/preflight";
-@import "tailwindcss/utilities";
+@tailwind utilities;
 
 :root {
-  --background: #000000; /* Retro Black */
-  --foreground: #cc33ff; /* Bright Purple */
+  --background: #000000;
+  --foreground: #2dd4bf; /* Teal */
+
+  --modal-bg: #18181b; /* Dark Zinc */
+  --text-light: #e4e4e7; /* Light Zinc */
+  --text-muted: #a1a1aa; /* Muted Zinc */
+}
+
+/* --- Ensure foundational elements allow full height --- */
+html,
+body,
+body > div:first-child, /* Target the potential Next.js wrapper div */
+div#__next {            /* Target Next.js wrapper div by ID */
+  height: 100%;         /* Make them capable of filling height */
+}
+
+html {
+  /* Prevent potential horizontal scrollbars */
+  overflow-x: hidden;
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: sans-serif;
+  color: var(--text-light);
+  overflow-y: hidden; /* Keep vertical overflow hidden for the body */
+  position: relative; /* Needed for absolute positioning children */
+  min-height: 100%; /* Ensure body takes at least full height */
+  display: flex; /* Use flexbox to make children fill height easily */
+  flex-direction: column;
+}
+
+/* Ensure the direct child of body (often #__next) also flexes if needed */
+div#__next {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Allow it to grow to fill body */
+}
+
+
+/* --- Keep focus styles --- */
+*:focus {
+  outline: none;
+}
+*:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
