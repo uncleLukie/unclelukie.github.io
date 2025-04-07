@@ -33,40 +33,21 @@ const Links: React.FC<LinksProps> = ({ onAboutClick }) => {
     return (
         <nav
             className="
-              absolute top-28 left-8 md:top-32 md:left-12
-              z-20
-              flex flex-col gap-3 md:gap-4
+              /* REMOVED: absolute top-28 left-8 md:top-32 md:left-12 */
+              /* REMOVED: z-20 (handled by parent wrapper now) */
+              flex flex-col gap-3 md:gap-4 /* Keep internal layout */
             "
         >
             {linkItemsData.map((item) => {
-                // *** Explicitly cast item.icon to our specific SVG component type ***
                 const IconComponent = item.icon as SvgComponentType;
-
-                // Now, rendering this should allow standard SVG props like className
-                const renderedIcon = <IconComponent className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />; // Line 40
-
+                const renderedIcon = <IconComponent className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />;
                 let linkElement: React.ReactNode = null;
 
                 if (item.isButton) {
-                    linkElement = (
-                        <LinkButton
-                            key={item.name}
-                            name={item.name}
-                            iconNode={renderedIcon}
-                            onClick={onAboutClick}
-                        />
-                    );
+                    linkElement = ( <LinkButton key={item.name} name={item.name} iconNode={renderedIcon} onClick={onAboutClick} /> );
                 } else if (item.url) {
-                    linkElement = (
-                        <LinkAnchor
-                            key={item.name}
-                            name={item.name}
-                            url={item.url}
-                            iconNode={renderedIcon}
-                        />
-                    );
+                    linkElement = ( <LinkAnchor key={item.name} name={item.name} url={item.url} iconNode={renderedIcon} /> );
                 }
-
                 return linkElement;
             })}
         </nav>
