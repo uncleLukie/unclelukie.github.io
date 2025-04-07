@@ -12,7 +12,7 @@ const Header: React.FC = () => {
               mb-4 /* add some bottom margin */
             "
         >
-            uncleLukie
+            uncleLukie.com
         </h1>
     );
 };

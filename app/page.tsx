@@ -1,45 +1,40 @@
 // app/page.tsx
 "use client";
 import React, { useState } from "react";
-import Scene from "./components/Scene";       // your 3d scene
-import Header from "./components/Header";     // keep the simple header for now
-import AboutModal from "./components/AboutModal"; // your modal component
-// import Links from "./components/Links"; // we're removing this, links move into the scene
+import Scene from "./components/Scene";
+import AboutModal from "./components/AboutModal";
+import { type LinkInfo } from "./components/HtmlLink"; // <-- import the LinkInfo type
 
 export default function HomePage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const openModal = () => setIsModalOpen(true);
     const closeModal = () => setIsModalOpen(false);
 
-    // we need to pass link data and the modal toggle function down to the scene
-    const linkItemsData = [
-        // maybe define link data here or fetch it
+    // explicitly type the array as LinkInfo[]
+    const linkItemsData: LinkInfo[] = [
         { name: 'GitHub', url: 'https://github.com/uncleLukie', type: 'link', iconName: 'FaGithub' },
         { name: 'LinkedIn', url: 'https://linkedin.com/in/unclelukie', type: 'link', iconName: 'FaLinkedin' },
         { name: 'Resume', url: '/path/to/your/resume.pdf', type: 'link', iconName: 'FaFileAlt' }, // update path
         { name: 'Email', url: 'mailto:lsjhewitt@gmail.com', type: 'link', iconName: 'FaEnvelope' },
         { name: 'Discord', url: 'https://discordapp.com/users/99079218897371136', type: 'link', iconName: 'FaDiscord' },
-        { name: 'About Me', type: 'button', iconName: 'FaUserAstronaut' }, // maybe a cooler icon?
+        { name: 'About Me', type: 'button', iconName: 'FaUserAstronaut' }, // url is optional, so it's fine here
     ];
 
 
     return (
         <main
-            className="relative w-full h-screen overflow-hidden" // keep main as the container
+            className="relative w-full h-screen overflow-hidden"
             style={{
                 backgroundImage: 'linear-gradient(to bottom, #282828, #0a0a0a)'
             }}
         >
-            {/* keep header positioned simply */}
-            <Header />
+            {/* <Header /> no longer needed */}
 
-            {/* remove the intermediate div, Scene will fill main via its own className */}
             <Scene
-                linkItems={linkItemsData}
+                linkItems={linkItemsData} // <-- this assignment should now be type-correct
                 onAboutClick={openModal}
             />
 
-            {/* keep the modal */}
             <AboutModal isOpen={isModalOpen} onClose={closeModal} />
         </main>
     );

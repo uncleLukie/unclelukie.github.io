@@ -17,7 +17,7 @@ const LinkButton: React.FC<LinkButtonProps> = ({ name, iconNode, onClick }) => {
               text-[var(--text-muted)]   /* start with muted color */
               p-2                       /* add some padding */
               rounded-md                /* slightly rounded corners */
-              transition-all duration-300 ease-in-out /* smooth transition */
+              transition-all duration-300 ease-in-out /* smooth */
               group                     /* keep group */
               text-left                 /* ensure text alignment */
               hover:text-[var(--foreground)] /* change text color on hover */

@@ -1,43 +1,41 @@
 // src/components/HtmlLink.tsx
 import React from 'react';
 import { Html } from '@react-three/drei';
-import * as FaIcons from 'react-icons/fa'; // import all Fa icons
+import * as FaIcons from 'react-icons/fa';
 
-// Define structure for link data passed down
 export interface LinkInfo {
     name: string;
     url?: string;
     type: 'link' | 'button';
-    iconName: keyof typeof FaIcons; // use icon name string
+    iconName: keyof typeof FaIcons;
 }
 
 interface HtmlLinkProps {
     linkInfo: LinkInfo;
-    position: [number, number, number]; // position relative to parent in 3d scene
-    onClick?: () => void; // for buttons
+    position: [number, number, number];
+    onClick?: () => void;
 }
 
 const HtmlLink: React.FC<HtmlLinkProps> = ({ linkInfo, position, onClick }) => {
-    // get the actual icon component based on the name string
-    const IconComponent = FaIcons[linkInfo.iconName] || FaIcons.FaQuestionCircle; // fallback icon
+    const IconComponent = FaIcons[linkInfo.iconName] || FaIcons.FaQuestionCircle;
 
     const commonClasses = `
-        flex items-center gap-2 md:gap-3 /* alignment and spacing */
-        font-mono text-base md:text-lg /* font and size */
-        bg-black/50 backdrop-blur-sm /* semi-transparent background */
-        border border-[var(--foreground)]/30 /* subtle border */
-        text-[var(--text-muted)] /* default text color */
-        px-3 py-1.5 md:px-4 md:py-2 /* padding */
-        rounded-full /* fully rounded */
-        shadow-lg shadow-[var(--foreground)]/20 /* subtle glow */
+        flex items-center gap-2 md:gap-3
+        font-mono text-base md:text-lg
+        bg-black/50 backdrop-blur-sm
+        border border-[var(--foreground)]/30
+        text-[var(--text-muted)]
+        px-3 py-1.5 md:px-4 md:py-2
+        rounded-full
+        shadow-lg shadow-[var(--foreground)]/20
         transition-all duration-300 ease-in-out
         cursor-pointer
-        whitespace-nowrap /* prevent text wrapping */
+        whitespace-nowrap
         hover:text-[var(--foreground)]
         hover:border-[var(--foreground)]/80
         hover:bg-black/70
         hover:shadow-[var(--foreground)]/40
-        hover:scale-105 /* slight zoom on hover */
+        hover:scale-105
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--foreground)] focus-visible:ring-offset-2 focus-visible:ring-offset-black/50
     `;
 
@@ -49,24 +47,37 @@ const HtmlLink: React.FC<HtmlLinkProps> = ({ linkInfo, position, onClick }) => {
     );
 
     return (
-        // use Drei's Html component to project onto the scene
         <Html
-            position={position} // position offset from the parent node/group
-            center // centers the html content relative to the attachment point
-            distanceFactor={10} // makes html scale down realistically with distance
-            className="pointer-events-none" // prevent html from blocking 3d interactions *underneath* it
-            // wrapperClassName // optional: add classes to the outer div created by <Html> if needed
-            // zIndexRange={[10, 0]} // control render order relative to 3d objects
-            transform // makes positioning/rotation follow the 3d object more accurately
-            // occlude // hides html if behind other 3d objects (can be 'raycast' or mesh ref)
+            position={position}
+            center
+            distanceFactor={8} // try reducing distance factor significantly
+            className="pointer-events-none select-none" // make wrapper non-interactive
+            // transform // <-- remove transform prop to test scaling fix
+            // occlude
+            // zIndexRange
         >
-            {/* apply pointer-events-auto *only* to the interactive element */}
+            {/* make only the button/link interactive */}
             {linkInfo.type === 'button' ? (
-                <button onClick={onClick} className={`${commonClasses} pointer-events-auto`}>
+                <button
+                    onClick={(e) => {
+                        // console.log('about me button clicked'); // debug log
+                        e.stopPropagation(); // prevent potential issues
+                        if (onClick) {
+                            onClick(); // call the passed handler
+                        }
+                    }}
+                    className={`${commonClasses} pointer-events-auto`} // enable pointer events here
+                >
                     {content}
                 </button>
             ) : (
-                <a href={linkInfo.url} target="_blank" rel="noopener noreferrer" className={`${commonClasses} pointer-events-auto`}>
+                <a
+                    href={linkInfo.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`${commonClasses} pointer-events-auto`} // enable pointer events here
+                    onClick={(e) => e.stopPropagation()} // stop propagation on links too
+                >
                     {content}
                 </a>
             )}
