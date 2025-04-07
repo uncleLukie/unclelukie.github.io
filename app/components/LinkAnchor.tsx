@@ -1,17 +1,13 @@
 // src/components/LinkAnchor.tsx
-import React from 'react'; // Keep React import
+import React from 'react';
 
 interface LinkAnchorProps {
     name: string;
     url: string;
-    // Change type to accept a rendered element or node
     iconNode: React.ReactNode;
 }
 
-// Update the props destructuring
 const LinkAnchor: React.FC<LinkAnchorProps> = ({ name, url, iconNode }) => {
-
-    // construct the aria-label string first
     const label = `Link to ${name}`;
 
     return (
@@ -20,19 +16,25 @@ const LinkAnchor: React.FC<LinkAnchorProps> = ({ name, url, iconNode }) => {
             target="_blank"
             rel="noopener noreferrer"
             className="
-              flex items-center gap-3
-              text-lg md:text-xl
-              font-mono
-              text-[var(--foreground)]
-              hover:text-white
-              transition-colors duration-200
-              group
+              flex items-center gap-3  /* keep alignment */
+              font-mono text-lg md:text-xl /* keep font/size */
+              text-[var(--text-muted)]   /* start with muted color */
+              p-2                       /* add some padding */
+              rounded-md                /* slightly rounded corners */
+              transition-all duration-300 ease-in-out /* smooth transition */
+              group                     /* keep group for potential parent hover */
+              hover:text-[var(--foreground)] /* change text color on hover */
+              hover:bg-[var(--foreground)]/10 /* subtle background highlight on hover */
+              hover:pl-4                  /* shift text right slightly on hover */
+              focus-visible:text-[var(--foreground)] /* ensure focus also highlights */
+              focus-visible:bg-[var(--foreground)]/10
+              focus-visible:pl-4
             "
-            // Keep the explicit cast just in case, though it's weird it's needed
             aria-label={label as string}
         >
-            {/* Directly render the passed icon node */}
+            {/* render icon */}
             {iconNode}
+            {/* text */}
             <span>{name}</span>
         </a>
     );

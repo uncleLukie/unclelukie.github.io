@@ -5,14 +5,12 @@ const Header: React.FC = () => {
     return (
         <h1
             className="
-              /* REMOVED: absolute top-8 left-8 md:top-12 md:left-12 */
-              text-3xl md:text-4xl lg:text-5xl /* Keep responsive text size */
-              font-mono font-bold /* Keep font */
-              text-[var(--foreground)] /* Keep color */
-              /* z-20 is less critical now, parent handles layering */
-              pointer-events-none /* Keep if needed */
+              text-3xl md:text-4xl lg:text-5xl
+              font-mono font-bold
+              text-[var(--foreground)]
+              pointer-events-none
+              mb-4 /* add some bottom margin */
             "
-            // Removed optional style
         >
             uncleLukie
         </h1>

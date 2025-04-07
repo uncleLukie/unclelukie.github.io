@@ -1,41 +1,45 @@
 // app/page.tsx
 "use client";
 import React, { useState } from "react";
-import Scene from "./components/Scene";
-import Header from "./components/Header";
-import Links from "./components/Links";
-import AboutModal from "./components/AboutModal";
+import Scene from "./components/Scene";       // your 3d scene
+import Header from "./components/Header";     // keep the simple header for now
+import AboutModal from "./components/AboutModal"; // your modal component
+// import Links from "./components/Links"; // we're removing this, links move into the scene
 
 export default function HomePage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const openModal = () => setIsModalOpen(true);
     const closeModal = () => setIsModalOpen(false);
 
+    // we need to pass link data and the modal toggle function down to the scene
+    const linkItemsData = [
+        // maybe define link data here or fetch it
+        { name: 'GitHub', url: 'https://github.com/uncleLukie', type: 'link', iconName: 'FaGithub' },
+        { name: 'LinkedIn', url: 'https://linkedin.com/in/unclelukie', type: 'link', iconName: 'FaLinkedin' },
+        { name: 'Resume', url: '/path/to/your/resume.pdf', type: 'link', iconName: 'FaFileAlt' }, // update path
+        { name: 'Email', url: 'mailto:lsjhewitt@gmail.com', type: 'link', iconName: 'FaEnvelope' },
+        { name: 'Discord', url: 'https://discordapp.com/users/99079218897371136', type: 'link', iconName: 'FaDiscord' },
+        { name: 'About Me', type: 'button', iconName: 'FaUserAstronaut' }, // maybe a cooler icon?
+    ];
+
+
     return (
         <main
-            className="relative w-full h-screen overflow-hidden"
+            className="relative w-full h-screen overflow-hidden" // keep main as the container
             style={{
                 backgroundImage: 'linear-gradient(to bottom, #282828, #0a0a0a)'
             }}
         >
-            {/* --- Add a Wrapper Div for Left UI Elements --- */}
-            <div className="
-                absolute top-1/2 left-8 md:left-16 lg:left-24 /* Adjust left offset */
-                transform -translate-y-1/2 /* Vertical centering */
-                z-10 /* Ensure UI is above scene (z-0) */
-                flex flex-col gap-4 md:gap-6 /* Space between Header and Links */
-            ">
-                {/* Header and Links go inside the wrapper */}
-                <Header />
-                <Links onAboutClick={openModal} />
-            </div>
+            {/* keep header positioned simply */}
+            <Header />
 
+            {/* remove the intermediate div, Scene will fill main via its own className */}
+            <Scene
+                linkItems={linkItemsData}
+                onAboutClick={openModal}
+            />
 
-            {/* Keep the Scene directly in main for now, it should fill */}
-            <Scene />
-
-
-            {/* Keep the Modal */}
+            {/* keep the modal */}
             <AboutModal isOpen={isModalOpen} onClose={closeModal} />
         </main>
     );

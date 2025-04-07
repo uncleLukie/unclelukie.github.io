@@ -54,9 +54,9 @@ const AboutModal: React.FC<AboutModalProps> = ({isOpen, onClose}) => {
                 </button>
 
                 {/* Modal Title using new foreground */}
-                <h2 className="text-2xl md:text-3xl font-mono font-bold text-[var(--foreground)] mb-4">
+                <h1 className="text-2xl md:text-3xl font-mono font-bold text-[var(--foreground)] mb-4">
                     About Me
-                </h2>
+                </h1>
 
                 {/* Modal Body */}
                 <div className="space-y-4 text-base md:text-lg leading-relaxed text-[var(--text-light)]">

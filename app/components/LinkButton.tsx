@@ -1,35 +1,37 @@
-// src/components/LinkButton.tsx (Updated)
+// src/components/LinkButton.tsx
 import React from 'react';
 
 interface LinkButtonProps {
     name: string;
-    // Change type to accept a rendered element or node
     iconNode: React.ReactNode;
     onClick: () => void;
 }
 
-// Update the props destructuring
 const LinkButton: React.FC<LinkButtonProps> = ({ name, iconNode, onClick }) => {
-    
     return (
         <button
             onClick={onClick}
             className="
-        flex items-center gap-3
-        text-lg md:text-xl
-        font-mono
-        text-[var(--foreground)]
-        hover:text-white
-        transition-colors duration-200
-        cursor-pointer
-        group
-        text-left
-      "
-            // Explicitly cast here too if needed, otherwise remove 'as string'
+              flex items-center gap-3 /* keep alignment */
+              font-mono text-lg md:text-xl /* keep font/size */
+              text-[var(--text-muted)]   /* start with muted color */
+              p-2                       /* add some padding */
+              rounded-md                /* slightly rounded corners */
+              transition-all duration-300 ease-in-out /* smooth transition */
+              group                     /* keep group */
+              text-left                 /* ensure text alignment */
+              hover:text-[var(--foreground)] /* change text color on hover */
+              hover:bg-[var(--foreground)]/10 /* subtle background highlight on hover */
+              hover:pl-4                  /* shift text right slightly on hover */
+              focus-visible:text-[var(--foreground)] /* ensure focus also highlights */
+              focus-visible:bg-[var(--foreground)]/10
+              focus-visible:pl-4
+            "
             aria-label={name as string}
         >
-            {/* Directly render the passed icon node */}
+            {/* render icon */}
             {iconNode}
+            {/* text */}
             <span>{name}</span>
         </button>
     );
